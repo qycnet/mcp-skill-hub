@@ -12,7 +12,7 @@ git clone https://github.com/YOUR_USERNAME/mcp-skill-hub.git
 cd mcp-skill-hub
 
 # 添加上游远程仓库
-git remote add upstream https://github.com/mcp-skill-hub/mcp-skill-hub.git
+git remote add upstream https://github.com/qycnet/mcp-skill-hub.git
 ```
 
 ### 2. 设置开发环境

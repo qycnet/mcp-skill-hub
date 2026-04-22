@@ -6,7 +6,7 @@
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/mcp-skill-hub/mcp-skill-hub.git
+git clone https://github.com/qycnet/mcp-skill-hub.git
 cd mcp-skill-hub
 
 # 2. 启动所有服务
@@ -29,7 +29,7 @@ open http://localhost:8080
 # - Redis 7+
 
 # 2. 克隆并安装依赖
-git clone https://github.com/mcp-skill-hub/mcp-skill-hub.git
+git clone https://github.com/qycnet/mcp-skill-hub.git
 cd mcp-skill-hub
 go mod download
 
@@ -130,5 +130,5 @@ docker-compose logs -f app
 ## 💬 获取帮助
 
 - 📖 [完整文档](docs/)
-- 🐛 [问题反馈](https://github.com/mcp-skill-hub/mcp-skill-hub/issues)
-- 💬 [社区讨论](https://github.com/mcp-skill-hub/mcp-skill-hub/discussions)
+- 🐛 [问题反馈](https://github.com/qycnet/mcp-skill-hub/issues)
+- 💬 [社区讨论](https://github.com/qycnet/mcp-skill-hub/discussions)
