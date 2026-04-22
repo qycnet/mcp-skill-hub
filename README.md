@@ -4,7 +4,7 @@
 
 [![Go Version](https://img.shields.io/badge/go-1.21+-00ADD8?style=flat-square&logo=go)](https://golang.org)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
-[![CI/CD](https://github.com/qycnet/mcp-skill-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/qycnet/mcp-skill-hub/actions)
+[![CI/CD](https://github.com/qycnet/mcp-skill-hub-core/actions/workflows/ci.yml/badge.svg)](https://github.com/qycnet/mcp-skill-hub-core/actions)
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker)](https://hub.docker.com)
 
 ---
@@ -50,7 +50,7 @@ MCP Skill Hub 是一个标准化的 **Model Context Protocol (MCP) 技能发布�
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/qycnet/mcp-skill-hub.git
+git clone https://github.com/qycnet/mcp-skill-hub-core.git
 cd mcp-skill-hub
 
 # 2. 一键启动
@@ -283,9 +283,9 @@ MIT License - 详见 [LICENSE](LICENSE)
 
 ## 📬 联系方式
 
-- 🐛 问题反馈：[GitHub Issues](https://github.com/qycnet/mcp-skill-hub/issues)
-- 💬 讨论区：[GitHub Discussions](https://github.com/qycnet/mcp-skill-hub/discussions)
-- 📧 邮件：team@mcp-skill-hub.dev
+- 🐛 问题反馈：[GitHub Issues](https://github.com/qycnet/mcp-skill-hub-core/issues)
+- 💬 讨论区：[GitHub Discussions](https://github.com/qycnet/mcp-skill-hub-core/discussions)
+- 📧 邮件：team@mcp-skill-hub-core.dev
 
 ---
 
@@ -311,6 +311,6 @@ MIT License - 详见 [LICENSE](LICENSE)
 
 **Made with ❤️ by the MCP Skill Hub Team**
 
-[📚 完整文档](docs/) | [🚀 快速开始](docs/QUICKSTART.md) | [💬 社区讨论](https://github.com/qycnet/mcp-skill-hub/discussions)
+[📚 完整文档](docs/) | [🚀 快速开始](docs/QUICKSTART.md) | [💬 社区讨论](https://github.com/qycnet/mcp-skill-hub-core/discussions)
 
 </div>
