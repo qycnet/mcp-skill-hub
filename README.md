@@ -285,7 +285,7 @@ MIT License - 详见 [LICENSE](LICENSE)
 
 - 🐛 问题反馈：[GitHub Issues](https://github.com/qycnet/mcp-skill-hub/issues)
 - 💬 讨论区：[GitHub Discussions](https://github.com/qycnet/mcp-skill-hub/discussions)
-- 📧 邮件：team@mcp-skill-hub.dev
+- 📧 邮件：tian@qycnet.cn
 
 ---
 
