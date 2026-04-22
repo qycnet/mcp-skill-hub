@@ -1,4 +1,4 @@
-module github.com/qycnet/mcp-skill-hub-core
+module github.com/qycnet/mcp-skill-hub
 
 go 1.21
 
