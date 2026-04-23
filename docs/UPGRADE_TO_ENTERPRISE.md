@@ -28,7 +28,7 @@ cd mcp-skill-hub
 
 #### 步骤 1: 获取许可证
 
-访问：https://mcp-skill-hub.dev/enterprise
+访问：https://enterprise.codevault.cn
 
 | 版本 | 价格 | 功能 |
 |------|------|------|
@@ -200,7 +200,7 @@ if err != nil {
 升级过程中遇到问题？
 
 - 📧 Email: tian@qycnet.cn
-- 📚 文档：https://docs.mcp-skill-hub.dev/enterprise
+- 📚 文档：https://docs.enterprise.codevault.cn
 - 💬 社区：https://github.com/qycnet/mcp-skill-hub/discussions
 
 ---
