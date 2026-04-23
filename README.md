@@ -172,32 +172,88 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
 ## 📁 项目结构
 
 ```
-mcp-skill-hub/
-├── cmd/                    # 应用入口
-│   ├── server/             # 主服务
-│   └── cli/mcp/            # CLI 工具
-├── internal/               # 内部包
-│   ├── api/                # HTTP handlers
-│   ├── auth/               # 认证服务
-│   ├── skill/              # 技能管理
-│   ├── storage/            # 对象存储
-│   ├── middleware/         # 中间件
-│   └── email/              # 邮件服务
-├── web/                    # React 前端
+mcp-skill-hub/ (开源版)
+├── cmd/
+│   └── server/
+│       └── main.go                  # 主服务入口
+├── internal/
+│   ├── api/                         # HTTP handlers
+│   │   ├── handlers.go              # 技能 CRUD 接口
+│   │   └── auth_handlers.go         # 认证接口
+│   ├── auth/                        # 认证服务 (JWT)
+│   │   ├── model.go                 # User/APIKey 模型
+│   │   ├── service.go               # JWT/密码加密
+│   │   ├── middleware.go            # JWT 中间件
+│   │   └── service_test.go          # 单元测试
+│   ├── skill/                       # 技能管理
+│   │   ├── model.go                 # Skill 数据模型
+│   │   ├── service.go               # CRUD 逻辑
+│   │   ├── service_test.go          # 单元测试
+│   │   └── upload.go                # ZIP 上传/解析
+│   ├── cache/                       # Redis 缓存
+│   │   └── service.go               # 缓存服务
+│   ├── i18n/                        # 国际化
+│   │   ├── locales.go               # 翻译器
+│   │   └── translations/            # 翻译文件
+│   │       ├── locale_zh.json       # 中文
+│   │       └── locale_en.json       # 英文
+│   ├── middleware/                  # 中间件
+│   │   ├── ratelimit.go             # 速率限制
+│   │   └── audit.go                 # 审计日志
+│   ├── storage/                     # 对象存储
+│   │   └── minio.go                 # MinIO 集成
+│   └── email/                       # 邮件服务
+│       └── service.go               # SMTP 邮件
+├── cli/                             # 命令行工具 (16 个文件)
+│   ├── cmd/mcp/                     # 11 个命令
+│   │   ├── main.go                  # CLI 入口
+│   │   ├── login.go                 # 登录
+│   │   ├── search.go                # 搜索
+│   │   ├── install.go               # 安装
+│   │   ├── list.go                  # 列出
+│   │   ├── info.go                  # 详情
+│   │   ├── publish.go               # 发布
+│   │   ├── update.go                # 更新
+│   │   ├── uninstall.go             # 卸载
+│   │   ├── version.go               # 版本
+│   │   ├── config.go                # 配置
+│   │   └── whoami.go                # 当前用户
+│   ├── internal/                    # CLI 内部库
+│   │   ├── api/client.go            # API 客户端
+│   │   └── config/config.go         # 配置加载
+│   └── README.md                    # CLI 文档
+├── web/                             # React 前端 (15 个文件)
 │   ├── src/
-│   │   ├── components/     # 组件
-│   │   ├── pages/          # 页面
-│   │   ├── stores/         # 状态管理
-│   │   └── api/            # API 客户端
-│   └── package.json
-├── cli/                    # CLI 工具
-├── deployments/            # 部署配置
-├── docs/                   # 文档
-├── .github/workflows/      # CI/CD
-├── docker-compose.yml      # Docker 编排
-├── Dockerfile              # 生产镜像
-├── Makefile                # 构建命令
-└── README.md               # 本文件
+│   │   ├── pages/                   # 8 个页面
+│   │   │   ├── HomePage.jsx         # 首页
+│   │   │   ├── SkillListPage.jsx    # 技能列表
+│   │   │   ├── SkillDetailPage.jsx  # 技能详情
+│   │   │   ├── LoginPage.jsx        # 登录/注册
+│   │   │   ├── ProfilePage.jsx      # 个人中心
+│   │   │   ├── PublishPage.jsx      # 发布技能
+│   │   │   ├── PricingPage.jsx      # 价格
+│   │   │   └── SubscriptionPage.jsx # 订阅管理
+│   │   ├── components/              # 可复用组件
+│   │   │   ├── Layout.jsx           # 布局
+│   │   │   └── LanguageSwitcher.jsx # 语言切换
+│   │   ├── stores/                  # 状态管理
+│   │   │   └── authStore.js         # 认证状态
+│   │   └── api/                     # API 客户端
+│   │       └── client.js            # Axios 封装
+│   └── (配置文件)
+├── docs/                            # 文档
+│   ├── QUICKSTART.md                # 5 分钟快速开始
+│   └── SNYK_SETUP.md                # Snyk 配置
+├── .github/workflows/               # CI/CD
+│   ├── ci.yml                       # 持续集成
+│   └── snyk.yml                     # 安全扫描
+├── docker-compose.yml               # Docker 编排
+├── Dockerfile                       # 生产镜像
+├── Makefile                         # 构建命令
+├── go.mod                           # Go 依赖
+├── README.md                        # 项目介绍
+├── CONTRIBUTING.md                  # 贡献指南
+└── LICENSE                          # MIT 许可
 ```
 
 ---
