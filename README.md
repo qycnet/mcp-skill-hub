@@ -381,6 +381,6 @@ MIT License - 详见 [LICENSE](LICENSE)
 
 **Made with ❤️ by the MCP Skill Hub Team**
 
-[📚 完整文档](docs/) | [🚀 快速开始](docs/QUICKSTART.md) | [💬 社区讨论](https://github.com/qycnet/mcp-skill-hub/discussions)
+[📚 完整文档](docs/) | [🚀 快速开始](docs/QUICKSTART.md) | [📝 更新日志](CHANGELOG.md) | [💬 社区讨论](https://github.com/qycnet/mcp-skill-hub/discussions)
 
 </div>
