@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/qycnet/mcp-skill-hub/internal/auth"
@@ -253,8 +254,5 @@ func AdminListUsers(s *auth.Service) gin.HandlerFunc {
 // parseUint 解析无符号整数
 func parseUint(s string) (uint, error) {
 	v, err := strconv.ParseUint(s, 10, 32)
-	return uint(v), err
-}
-&v)
 	return uint(v), err
 }

@@ -4,7 +4,6 @@
 
 [![Go Version](https://img.shields.io/badge/go-1.21+-00ADD8?style=flat-square&logo=go)](https://golang.org)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
-[![CI/CD](https://github.com/qycnet/mcp-skill-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/qycnet/mcp-skill-hub/actions)
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker)](https://hub.docker.com)
 
 ---
@@ -53,14 +52,20 @@ MCP Skill Hub 是一个标准化的 **Model Context Protocol (MCP) 技能发布�
 git clone https://github.com/qycnet/mcp-skill-hub.git
 cd mcp-skill-hub
 
-# 2. 一键启动
+# 2. 配置环境变量
+cp .env.example .env
+# 编辑 .env 文件，填入真实的配置信息
+
+# 3. 一键启动
 make docker-up
 
-# 3. 访问服务
+# 4. 访问服务
 # Web 界面：http://localhost:8080
 # API: http://localhost:8080/api/v1
 # MinIO Console: http://localhost:9001
 ```
+
+> ⚠️ **重要**：必须先配置 `.env` 文件，否则服务无法启动（敏感配置项已设为必填）
 
 ### 本地开发
 
@@ -260,12 +265,15 @@ mcp-skill-hub/ (开源版)
 
 ## 🔐 安全特性
 
-- ✅ **技能签名**: 所有发布技能使用 GPG 签名验证
-- ✅ **依赖扫描**: 自动检测已知漏洞（集成 OSV、Snyk）
+- ✅ **密码加密**: 使用 bcrypt 进行密码哈希
+- ✅ **JWT 认证**: 基于 JWT 的无状态认证机制
 - ✅ **权限隔离**: 基于 RBAC 的细粒度权限控制
-- ✅ **审计日志**: 所有操作记录到不可变日志
 - ✅ **速率限制**: 防止滥用和 DDoS
-- ✅ **私有网络**: 支持 VPC 内网部署
+- ✅ **CORS 支持**: 跨域资源共享配置
+- ✅ **安全配置**: 敏感信息强制要求环境变量配置
+- 🚧 **技能签名**: GPG 签名验证（计划中）
+- 🚧 **依赖扫描**: 自动检测已知漏洞（计划中）
+- 🚧 **审计日志**: 操作追踪（计划中）
 
 ---
 
@@ -302,10 +310,7 @@ go tool cover -html=coverage.out
 ## 📚 文档
 
 - [快速开始](docs/QUICKSTART.md) - 5 分钟上手
-- [开发文档](DEVELOPMENT.md) - API、数据库、测试指南
 - [贡献指南](CONTRIBUTING.md) - 如何贡献代码
-- [项目状态](PROJECT_STATUS.md) - 进度跟踪
-- [发布说明](RELEASE_NOTES.md) - 版本历史
 
 ---
 
@@ -347,12 +352,21 @@ MIT License - 详见 [LICENSE](LICENSE)
 
 ## 🗺️ 路线图
 
-### v0.4.0 (计划中)
+### v0.1.0 (当前)
+- [x] 基础 API 框架
+- [x] 用户认证（JWT）
+- [x] 技能 CRUD
+- [x] Docker 部署
+- [x] CORS 支持
+- [ ] CI/CD 流程
+- [ ] 单元测试完善
+
+### v0.2.0 (计划中)
 - [ ] 安全扫描集成
 - [ ] 集成测试
 - [ ] 测试覆盖率 80%
 
-### v0.5.0 (计划中)
+### v0.3.0 (计划中)
 - [ ] 付费技能支持
 - [ ] 订阅制
 
