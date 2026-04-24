@@ -23,32 +23,26 @@ type User struct {
 
 // APIKey API 密钥
 type APIKey struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	UserID      uint      `gorm:"index;not null" json:"user_id"`
-	Key         string    `gorm:"uniqueIndex;size:64;not null" json:"key"`
-	Name        string    `gorm:"size:100" json:"name"`
-	Description string    `gorm:"type:text" json:"description"`
+	ID          uint       `gorm:"primaryKey" json:"id"`
+	UserID      uint       `gorm:"index;not null" json:"user_id"`
+	Key         string     `gorm:"uniqueIndex;size:64;not null" json:"key"`
+	Name        string     `gorm:"size:100" json:"name"`
+	Description string     `gorm:"type:text" json:"description"`
 	LastUsedAt  *time.Time `json:"last_used_at"`
 	ExpiresAt   *time.Time `json:"expires_at"`
-	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
+	CreatedAt   time.Time  `gorm:"autoCreateTime" json:"created_at"`
 }
 
 // Service 认证服务
 type Service struct {
-	db *gorm.DB
+	db        *gorm.DB
+	jwtSecret []byte
 }
 
 // NewService 创建认证服务
-func NewService(db *gorm.DB) *Service {
-	return &Service{db: db}
+func NewService(db *gorm.DB, jwtSecret string) *Service {
+	return &Service{
+		db:        db,
+		jwtSecret: []byte(jwtSecret),
+	}
 }
-
-// TODO: 实现完整的认证逻辑
-// - Register: 用户注册
-// - Login: 用户登录（JWT）
-// - RefreshToken: 刷新 Token
-// - Logout: 登出
-// - CreateAPIKey: 创建 API 密钥
-// - RevokeAPIKey: 撤销 API 密钥
-// - AuthMiddleware: JWT 认证中间件
-// - AdminMiddleware: 管理员权限中间件

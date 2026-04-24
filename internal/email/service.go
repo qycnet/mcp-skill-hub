@@ -2,6 +2,7 @@ package email
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"html/template"
 	"net/smtp"
@@ -21,12 +22,16 @@ type Config struct {
 
 // Service 邮件服务
 type Service struct {
-	config Config
+	config    Config
+	templates map[string]*template.Template
 }
 
 // NewService 创建邮件服务
 func NewService(config Config) *Service {
-	return &Service{config: config}
+	return &Service{
+		config:    config,
+		templates: make(map[string]*template.Template),
+	}
 }
 
 // Email 邮件结构
@@ -66,11 +71,67 @@ func (s *Service) Send(email *Email) error {
 
 	// 发送
 	if s.config.EnableTLS {
-		// TODO: 实现 TLS 支持
-		return smtp.SendMail(addr+":587", auth, s.config.FromEmail, email.To, body.Bytes())
+		return s.sendWithTLS(addr, auth, email.To, body.Bytes())
 	}
 
 	return smtp.SendMail(addr, auth, s.config.FromEmail, email.To, body.Bytes())
+}
+
+// sendWithTLS 使用 TLS 发送邮件
+func (s *Service) sendWithTLS(addr string, auth smtp.Auth, to []string, msg []byte) error {
+	// 创建 TLS 配置
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: false,
+		ServerName:         s.config.SMTPHost,
+	}
+
+	// 连接服务器
+	conn, err := tls.Dial("tcp", addr, tlsConfig)
+	if err != nil {
+		return fmt.Errorf("TLS 连接失败：%w", err)
+	}
+
+	client, err := smtp.NewClient(conn, s.config.SMTPHost)
+	if err != nil {
+		return fmt.Errorf("创建 SMTP 客户端失败：%w", err)
+	}
+	defer client.Close()
+
+	// 认证
+	if auth != nil {
+		if err := client.Auth(auth); err != nil {
+			return fmt.Errorf("SMTP 认证失败：%w", err)
+		}
+	}
+
+	// 设置发件人
+	if err := client.Mail(s.config.FromEmail); err != nil {
+		return fmt.Errorf("设置发件人失败：%w", err)
+	}
+
+	// 设置收件人
+	for _, addr := range to {
+		if err := client.Rcpt(addr); err != nil {
+			return fmt.Errorf("设置收件人失败：%w", err)
+		}
+	}
+
+	// 发送内容
+	w, err := client.Data()
+	if err != nil {
+		return fmt.Errorf("准备发送数据失败：%w", err)
+	}
+
+	_, err = w.Write(msg)
+	if err != nil {
+		return fmt.Errorf("写入邮件内容失败：%w", err)
+	}
+
+	if err := w.Close(); err != nil {
+		return fmt.Errorf("关闭写入失败：%w", err)
+	}
+
+	return client.Quit()
 }
 
 // SendWelcome 发送欢迎邮件
@@ -264,10 +325,34 @@ type DigestSkill struct {
 	Downloads   int64
 }
 
-// TemplateEmail 使用模板发送邮件
-func (s *Service) SendTemplate(to, subject, templateName string, data interface{}) error {
-	// TODO: 实现模板加载和渲染
+// LoadTemplate 加载邮件模板
+func (s *Service) LoadTemplate(name, content string) error {
+	tmpl, err := template.New(name).Parse(content)
+	if err != nil {
+		return fmt.Errorf("解析模板失败：%w", err)
+	}
+	s.templates[name] = tmpl
 	return nil
+}
+
+// SendTemplate 使用模板发送邮件
+func (s *Service) SendTemplate(to []string, subject, templateName string, data interface{}) error {
+	tmpl, ok := s.templates[templateName]
+	if !ok {
+		return fmt.Errorf("模板 %s 不存在", templateName)
+	}
+
+	var body bytes.Buffer
+	if err := tmpl.Execute(&body, data); err != nil {
+		return fmt.Errorf("渲染模板失败：%w", err)
+	}
+
+	return s.Send(&Email{
+		To:      to,
+		Subject: subject,
+		Body:    body.String(),
+		HTML:    true,
+	})
 }
 
 // BatchSend 批量发送邮件

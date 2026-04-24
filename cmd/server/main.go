@@ -44,8 +44,13 @@ func main() {
 	objectStorage := initStorage()
 
 	// 初始化服务
+	jwtSecret := viper.GetString("jwt_secret")
+	if jwtSecret == "" {
+		jwtSecret = "default-secret-change-in-production"
+	}
+	
 	skillService := skill.NewService(db, objectStorage)
-	authService := auth.NewService(db)
+	authService := auth.NewService(db, jwtSecret)
 
 	// 创建路由
 	router := setupRouter(skillService, authService)
@@ -104,6 +109,14 @@ func initConfig() {
 	viper.SetDefault("storage.access_key", "minioadmin")
 	viper.SetDefault("storage.secret_key", "minioadmin")
 	viper.SetDefault("storage.bucket", "mcp-skills")
+	viper.SetDefault("jwt_secret", "default-secret-change-in-production")
+	viper.SetDefault("redis.host", "localhost")
+	viper.SetDefault("redis.port", 6379)
+	viper.SetDefault("redis.password", "")
+	viper.SetDefault("redis.db", 0)
+
+	// 支持从环境变量读取
+	viper.AutomaticEnv()
 
 	// 读取配置
 	if err := viper.ReadInConfig(); err != nil {
