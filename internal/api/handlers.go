@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mcp-skill-hub/server/internal/skill"
+	"github.com/qycnet/mcp-skill-hub/internal/skill"
 )
 
 // ListSkills 获取技能列表

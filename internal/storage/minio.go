@@ -104,6 +104,6 @@ func (s *MinIOStorage) Exists(ctx context.Context, objectName string) (bool, err
 
 // GetURL 获取下载 URL（预签名）
 func (s *MinIOStorage) GetURL(ctx context.Context, objectName string) (string, error) {
-	// 生成 7 天有效的预签名 URL
-	return s.client.PresignedGetObject(ctx, s.config.Bucket, objectName, 60*60*24*7, nil)
+	// 生成 1 小时有效的预签名 URL（安全优化）
+	return s.client.PresignedGetObject(ctx, s.config.Bucket, objectName, 60*60, nil)
 }

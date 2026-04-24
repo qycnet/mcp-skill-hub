@@ -10,11 +10,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/mcp-skill-hub/server/internal/api"
-	"github.com/mcp-skill-hub/server/internal/auth"
-	"github.com/mcp-skill-hub/server/internal/skill"
-	"github.com/mcp-skill-hub/server/internal/storage"
+	"github.com/qycnet/mcp-skill-hub/internal/api"
+	"github.com/qycnet/mcp-skill-hub/internal/auth"
+	"github.com/qycnet/mcp-skill-hub/internal/skill"
+	"github.com/qycnet/mcp-skill-hub/internal/storage"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -163,6 +164,16 @@ func initStorage() storage.ObjectStorage {
 
 func setupRouter(skillService *skill.Service, authService *auth.Service) *gin.Engine {
 	router := gin.Default()
+
+	// CORS 配置
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // 生产环境应限制为具体域名
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-API-Key"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// 健康检查
 	router.GET("/health", func(c *gin.Context) {

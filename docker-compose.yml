@@ -17,13 +17,13 @@ services:
       - DATABASE_PORT=${DATABASE_PORT:-5432}
       - DATABASE_NAME=${DATABASE_NAME:-mcp_skill_hub}
       - DATABASE_USER=${DATABASE_USER:-postgres}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-ChangeMe_Immediately}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:?DATABASE_PASSWORD is required}
       - STORAGE_ENDPOINT=${STORAGE_ENDPOINT:-minio:9000}
       - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY:-minioadmin}
-      - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY:-ChangeMe_Immediately}
+      - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY:?STORAGE_SECRET_KEY is required}
       - STORAGE_BUCKET=${STORAGE_BUCKET:-mcp-skills}
       - STORAGE_USE_SSL=${STORAGE_USE_SSL:-false}
-      - JWT_SECRET=${JWT_SECRET:-ChangeMe_Immediately}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,7 +52,7 @@ services:
     environment:
       - POSTGRES_DB=mcp_skill_hub
       - POSTGRES_USER=${DATABASE_USER:-postgres}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-ChangeMe_Immediately}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:?DATABASE_PASSWORD is required}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
@@ -75,7 +75,7 @@ services:
       - .env
     environment:
       - MINIO_ROOT_USER=${STORAGE_ACCESS_KEY:-minioadmin}
-      - MINIO_ROOT_PASSWORD=${STORAGE_SECRET_KEY:-ChangeMe_Immediately}
+      - MINIO_ROOT_PASSWORD=${STORAGE_SECRET_KEY:?STORAGE_SECRET_KEY is required}
     volumes:
       - minio-data:/data
     ports:

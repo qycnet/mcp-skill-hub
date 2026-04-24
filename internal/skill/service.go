@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/mcp-skill-hub/server/internal/storage"
+	"github.com/qycnet/mcp-skill-hub/internal/storage"
 	"gorm.io/gorm"
 )
 

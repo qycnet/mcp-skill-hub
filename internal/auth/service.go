@@ -15,7 +15,7 @@ var (
 	ErrUserNotFound      = errors.New("用户不存在")
 	ErrUserAlreadyExists = errors.New("用户已存在")
 	ErrInvalidPassword   = errors.New("密码错误")
-	ErrInvalidToken      = errors.New="无效令牌"
+	ErrInvalidToken      = errors.New("无效令牌")
 	ErrTokenExpired      = errors.New("令牌已过期")
 )
 

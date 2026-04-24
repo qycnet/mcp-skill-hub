@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mcp-skill-hub/server/internal/auth"
+	"github.com/qycnet/mcp-skill-hub/internal/auth"
 )
 
 // Register 用户注册
