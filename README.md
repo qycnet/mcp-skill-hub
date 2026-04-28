@@ -56,16 +56,30 @@ cd mcp-skill-hub
 cp .env.example .env
 # 编辑 .env 文件，填入真实的配置信息
 
-# 3. 一键启动
+# 3. 安装 Trivy（安全扫描必需）
+# macOS
+brew install trivy
+
+# Ubuntu/Debian
+sudo apt-get install trivy
+
+# 或访问 https://aquasecurity.github.io/trivy/latest/getting-started/installation/
+
+# 4. 一键启动
 make docker-up
 
-# 4. 访问服务
+# 5. 访问服务
 # Web 界面：http://localhost:8080
 # API: http://localhost:8080/api/v1
 # MinIO Console: http://localhost:9001
 ```
 
-> ⚠️ **重要**：必须先配置 `.env` 文件，否则服务无法启动（敏感配置项已设为必填）
+> ⚠️ **重要安全配置**：
+> - 必须配置 `JWT_SECRET`（至少 32 字符）
+> - 必须配置 `DATABASE_PASSWORD`（强密码）
+> - 必须配置 `STORAGE_SECRET_KEY`（MinIO 密钥）
+> - 生产环境必须配置 `CORS_ALLOWED_ORIGINS`（具体域名）
+> - 否则服务无法启动
 
 ### 本地开发
 
@@ -265,15 +279,29 @@ mcp-skill-hub/ (开源版)
 
 ## 🔐 安全特性
 
+### 核心安全功能
+- ✅ **安全扫描**: 集成 Trivy 自动扫描漏洞（HIGH/CRITICAL 自动阻断）
+- ✅ **沙箱隔离**: Docker 容器隔离执行，资源限制（内存/CPU/PID）
 - ✅ **密码加密**: 使用 bcrypt 进行密码哈希
-- ✅ **JWT 认证**: 基于 JWT 的无状态认证机制
+- ✅ **JWT 认证**: 基于 JWT 的无状态认证机制（最少 32 字符密钥）
 - ✅ **权限隔离**: 基于 RBAC 的细粒度权限控制
-- ✅ **速率限制**: 防止滥用和 DDoS
-- ✅ **CORS 支持**: 跨域资源共享配置
-- ✅ **安全配置**: 敏感信息强制要求环境变量配置
-- 🚧 **技能签名**: GPG 签名验证（计划中）
-- 🚧 **依赖扫描**: 自动检测已知漏洞（计划中）
-- 🚧 **审计日志**: 操作追踪（计划中）
+- ✅ **速率限制**: 多级限制（IP/用户/API 端点），防止滥用和 DDoS
+- ✅ **CORS 加固**: 生产环境强制配置具体域名
+- ✅ **安全配置**: 敏感信息强制要求环境变量配置，无默认弱密码
+- ✅ **事务处理**: 数据库事务保证数据一致性
+- ✅ **审计日志**: 完整操作追踪（企业版）
+
+### 沙箱安全措施
+- 🐳 容器隔离执行
+- 🔒 只读文件系统挂载
+- 👤 非 root 用户运行（UID 1000）
+- 🌐 网络隔离（默认无网络访问）
+- ⏱️ 超时控制（默认 30 秒）
+- 📊 资源限制（内存 512m，CPU 1.0，PIDs 100）
+
+### 计划中的功能
+- 🚧 **技能签名**: GPG 签名验证
+- 🚧 **WebAssembly 运行时**: 替代 Docker 的轻量级隔离
 
 ---
 
@@ -303,6 +331,73 @@ go test -cover ./...
 # 生成覆盖率报告
 go test -coverprofile=coverage.out ./...
 go tool cover -html=coverage.out
+```
+
+---
+
+## 🛡️ 安全最佳实践
+
+### 生产环境部署清单
+
+- [ ] **配置强密钥**
+  ```bash
+  # 生成强 JWT 密钥（至少 32 字符）
+  openssl rand -base64 32
+  
+  # 生成数据库密码
+  openssl rand -base64 24
+  ```
+
+- [ ] **配置 CORS**
+  ```bash
+  # .env
+  CORS_ALLOWED_ORIGINS=https://yourdomain.com,https://app.yourdomain.com
+  ```
+
+- [ ] **启用安全扫描**
+  ```bash
+  # 安装 Trivy
+  brew install trivy  # macOS
+  sudo apt-get install trivy  # Ubuntu
+  
+  # 配置环境变量
+  SECURITY_SCAN_ENABLED=true
+  TRIVY_PATH=trivy
+  ```
+
+- [ ] **配置速率限制**
+  ```bash
+  # 默认限制已在代码中配置
+  # 登录：1 req/s
+  # 搜索：5 req/s
+  # 管理：20 req/s
+  ```
+
+- [ ] **启用审计日志**（企业版）
+  ```bash
+  AUDIT_ENABLED=true
+  AUDIT_RETENTION_DAYS=90
+  ```
+
+### 安全扫描工作流
+
+```
+技能上传 → ZIP 解析 → Trivy 扫描 → 漏洞评估
+                                    ↓
+                            HIGH/CRITICAL → 阻止上传
+                            MEDIUM/LOW → 允许上传 + 警告
+```
+
+### 沙箱执行流程
+
+```
+技能执行请求 → 创建容器 → 资源限制 → 执行 → 清理
+                    ↓
+            - 内存：512m
+            - CPU：1.0
+            - 网络：无
+            - 用户：UID 1000
+            - 文件系统：只读
 ```
 
 ---
@@ -352,28 +447,39 @@ MIT License - 详见 [LICENSE](LICENSE)
 
 ## 🗺️ 路线图
 
-### v0.1.0 (当前)
+### v0.2.0 (当前 - 安全加固版)
+- [x] 安全扫描集成（Trivy）
+- [x] Docker 沙箱隔离执行
+- [x] 数据库事务支持
+- [x] 速率限制中间件
+- [x] CORS 安全加固
+- [x] 移除默认弱密码
+- [x] 审计日志完整实现（企业版）
+- [x] 数据分析完整实现（企业版）
+
+### v0.1.0
 - [x] 基础 API 框架
 - [x] 用户认证（JWT）
 - [x] 技能 CRUD
 - [x] Docker 部署
 - [x] CORS 支持
-- [ ] CI/CD 流程
-- [ ] 单元测试完善
-
-### v0.2.0 (计划中)
-- [ ] 安全扫描集成
-- [ ] 集成测试
-- [ ] 测试覆盖率 80%
 
 ### v0.3.0 (计划中)
+- [ ] WebAssembly 运行时支持
+- [ ] 集成测试完善
+- [ ] 测试覆盖率 80%
+- [ ] GPG 签名验证
+
+### v0.4.0 (计划中)
 - [ ] 付费技能支持
 - [ ] 订阅制
+- [ ] 多租户支持
 
 ### v1.0.0 (目标)
 - [ ] 生产就绪
 - [ ] 多语言支持
 - [ ] 企业 SSO
+- [ ] Kubernetes Helm Chart
 
 ---
 
