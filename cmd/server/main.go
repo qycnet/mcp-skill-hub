@@ -46,7 +46,10 @@ func main() {
 	// 初始化服务
 	jwtSecret := viper.GetString("jwt_secret")
 	if jwtSecret == "" {
-		jwtSecret = "default-secret-change-in-production"
+		log.Fatal("❌ JWT_SECRET 环境变量必须设置")
+	}
+	if len(jwtSecret) < 32 {
+		log.Fatal("❌ JWT_SECRET 必须至少 32 个字符")
 	}
 	
 	skillService := skill.NewService(db, objectStorage)
@@ -104,15 +107,13 @@ func initConfig() {
 	viper.SetDefault("database.port", 5432)
 	viper.SetDefault("database.name", "mcp_skill_hub")
 	viper.SetDefault("database.user", "postgres")
-	viper.SetDefault("database.password", "postgres")
+	// 注意：数据库密码必须通过环境变量设置，不提供默认值
 	viper.SetDefault("storage.endpoint", "localhost:9000")
 	viper.SetDefault("storage.access_key", "minioadmin")
-	viper.SetDefault("storage.secret_key", "minioadmin")
+	// 注意：存储密钥必须通过环境变量设置
 	viper.SetDefault("storage.bucket", "mcp-skills")
-	viper.SetDefault("jwt_secret", "default-secret-change-in-production")
 	viper.SetDefault("redis.host", "localhost")
 	viper.SetDefault("redis.port", 6379)
-	viper.SetDefault("redis.password", "")
 	viper.SetDefault("redis.db", 0)
 
 	// 支持从环境变量读取
@@ -178,12 +179,23 @@ func initStorage() storage.ObjectStorage {
 func setupRouter(skillService *skill.Service, authService *auth.Service) *gin.Engine {
 	router := gin.Default()
 
-	// CORS 配置
+	// CORS 配置（生产环境应限制为具体域名）
+	allowedOrigins := viper.GetStringSlice("cors.allowed_origins")
+	if len(allowedOrigins) == 0 {
+		// 开发环境允许 localhost
+		if viper.GetString("mode") == "debug" {
+			allowedOrigins = []string{"http://localhost:*", "http://127.0.0.1:*"}
+		} else {
+			// 生产环境必须配置具体域名
+			log.Fatal("❌ 生产环境必须配置 cors.allowed_origins")
+		}
+	}
+
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"}, // 生产环境应限制为具体域名
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-API-Key"},
-		ExposeHeaders:    []string{"Content-Length"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-API-Key", "X-Request-ID"},
+		ExposeHeaders:    []string{"Content-Length", "X-Request-ID"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))

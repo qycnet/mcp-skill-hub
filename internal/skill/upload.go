@@ -12,8 +12,10 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 var (
@@ -44,7 +46,7 @@ type SkillManifest struct {
 	Platforms   []string `json:"platforms"`
 }
 
-// UploadSkillPackage 上传技能包
+// UploadSkillPackage 上传技能包（带事务处理）
 func (s *Service) UploadSkillPackage(ctx context.Context, file *multipart.FileHeader, userID uint) (*Skill, *SkillVersion, error) {
 	// 检查文件大小
 	if file.Size > MaxPackageSize {
@@ -81,66 +83,93 @@ func (s *Service) UploadSkillPackage(ctx context.Context, file *multipart.FileHe
 		return nil, nil, errors.New("无效的技能名称（只能包含小写字母、数字和连字符）")
 	}
 
-	// 检查技能是否已存在且用户有权限
 	var skill *Skill
-	existingSkill, err := s.GetSkillByUUID(ctx, manifest.Name)
-	if err != nil {
-		if err == ErrSkillNotFound {
-			// 创建新技能
-			skill = &Skill{
-				UUID:        uuid.New().String(),
-				Name:        manifest.Name,
-				DisplayName: manifest.DisplayName,
-				Description: manifest.Description,
-				Category:    manifest.Category,
-				AuthorID:    userID,
-				License:     manifest.License,
-				Homepage:    manifest.Homepage,
-				Repository:  manifest.Repository,
-				Status:      "pending", // 待审核
-			}
+	var version *SkillVersion
+	var uploadedObjectName string
 
-			if err := s.CreateSkill(ctx, skill); err != nil {
-				return nil, nil, err
+	// 使用事务确保数据一致性
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		// 检查技能是否已存在且用户有权限
+		existingSkill, err := s.GetSkillByUUID(ctx, manifest.Name)
+		if err != nil {
+			if err == ErrSkillNotFound {
+				// 创建新技能
+				skill = &Skill{
+					UUID:        uuid.New().String(),
+					Name:        manifest.Name,
+					DisplayName: manifest.DisplayName,
+					Description: manifest.Description,
+					Category:    manifest.Category,
+					AuthorID:    userID,
+					License:     manifest.License,
+					Homepage:    manifest.Homepage,
+					Repository:  manifest.Repository,
+					Status:      "pending", // 待审核
+				}
+
+				if err := tx.Create(skill).Error; err != nil {
+					return fmt.Errorf("创建技能失败：%w", err)
+				}
+			} else {
+				return err
 			}
 		} else {
-			return nil, nil, err
+			skill = existingSkill
+			// 验证权限
+			if skill.AuthorID != userID {
+				return ErrUnauthorized
+			}
 		}
-	} else {
-		skill = existingSkill
-		// 验证权限
-		if skill.AuthorID != userID {
-			return nil, nil, ErrUnauthorized
-		}
-	}
 
-	// 上传技能包到对象存储
-	objectName := fmt.Sprintf("skills/%s/%s/%s.zip", skill.UUID, manifest.Version, uuid.New().String())
-	err = s.storage.Upload(ctx, objectName, bytes.NewReader(data), file.Size, "application/zip")
+		// 上传技能包到对象存储
+		uploadedObjectName = fmt.Sprintf("skills/%s/%s/%s.zip", skill.UUID, manifest.Version, uuid.New().String())
+		err = s.storage.Upload(ctx, uploadedObjectName, bytes.NewReader(data), file.Size, "application/zip")
+		if err != nil {
+			return fmt.Errorf("上传技能包失败：%w", err)
+		}
+
+		// 创建版本记录
+		version = &SkillVersion{
+			SkillID:     skill.ID,
+			Version:     manifest.Version,
+			Description: manifest.Description,
+			DownloadURL: uploadedObjectName,
+			Size:        file.Size,
+			MCPVersion:  manifest.MCPVersion,
+			IsLatest:    true,
+		}
+
+		// 更新旧版本的 is_latest 标记
+		if err := tx.Model(&SkillVersion{}).
+			Where("skill_id = ? AND is_latest = ?", skill.ID, true).
+			Update("is_latest", false).Error; err != nil {
+			// 回滚时删除已上传的文件
+			go s.storage.Delete(context.Background(), uploadedObjectName)
+			return fmt.Errorf("更新版本标记失败：%w", err)
+		}
+
+		// 创建新版本
+		if err := tx.Create(version).Error; err != nil {
+			// 回滚时删除已上传的文件
+			go s.storage.Delete(context.Background(), uploadedObjectName)
+			return fmt.Errorf("创建版本失败：%w", err)
+		}
+
+		// 更新技能信息
+		if err := tx.Model(skill).Updates(map[string]interface{}{
+			"latest_version": manifest.Version,
+			"updated_at":     time.Now(),
+		}).Error; err != nil {
+			go s.storage.Delete(context.Background(), uploadedObjectName)
+			return fmt.Errorf("更新技能信息失败：%w", err)
+		}
+
+		return nil
+	})
+
 	if err != nil {
-		return nil, nil, fmt.Errorf("上传技能包失败：%w", err)
-	}
-
-	// 创建版本记录
-	version := &SkillVersion{
-		SkillID:     skill.ID,
-		Version:     manifest.Version,
-		Description: manifest.Description,
-		DownloadURL: objectName,
-		Size:        file.Size,
-		MCPVersion:  manifest.MCPVersion,
-		IsLatest:    true,
-	}
-
-	if err := s.PublishVersion(ctx, skill.ID, version); err != nil {
 		return nil, nil, err
 	}
-
-	// 更新技能信息
-	s.db.Model(skill).Updates(map[string]interface{}{
-		"latest_version": manifest.Version,
-		"updated_at":     nil, // 触发自动更新时间
-	})
 
 	return skill, version, nil
 }
